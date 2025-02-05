@@ -14,9 +14,6 @@
 #define debugln(msg)
 #endif
 
-// led
-//#define LED D8
-
 //botones
 #define BOTON D6
 #define BOTON_MODO D7
@@ -86,76 +83,9 @@ void sendCommand(const char* format, int seq, ...) {
   udp.endPacket();
 }
 
-// void receiveTelemetry() {
-//   int packetSize = udpTelemetry.parsePacket();
-//   if (packetSize) {
-//     char buffer[1024];
-//     int len = udpTelemetry.read(buffer, sizeof(buffer) - 1);
-//     if (len > 0) {
-//       buffer[len] = 0;              // Null-terminate the buffer
-//       parseTelemetry(buffer, len);  // Parse the telemetry data
-//     }
-//   }
-// }
-//
-// void parseTelemetry(const char* data, int length) {
-//   // Parse the header
-//   uint32_t header = *(uint32_t*)(data);
-//   uint32_t droneState = *(uint32_t*)(data + 4);
-//   uint32_t sequenceNumber = *(uint32_t*)(data + 8);
-//   uint32_t visionFlag = *(uint32_t*)(data + 12);
-//
-//   Serial.print("Header: ");
-//   Serial.println(header, HEX);
-//   Serial.print("Drone State: ");
-//   Serial.println(droneState, HEX);
-//   Serial.print("Sequence Number: ");
-//   Serial.println(sequenceNumber);
-//   Serial.print("Vision Flag: ");
-//   Serial.println(visionFlag, HEX);
-//
-//   // Parse navigation tags
-//   int offset = 16;  // Start of navigation tags
-//   while (offset < length) {
-//     uint16_t tagId = *(uint16_t*)(data + offset);
-//     uint16_t tagLength = *(uint16_t*)(data + offset + 2);
-//
-//     switch (tagId) {
-//       case 0:  // Demo tag (contains basic telemetry)
-//         parseDemoTag(data + offset + 4, tagLength);
-//         break;
-//         // Add more cases for other tags as needed
-//     }
-//
-//     offset += 4 + tagLength;  // Move to the next tag
-//   }
-// }
-//
-// void parseDemoTag(const char* data, int length) {
-//   // Parse demo tag data
-//   uint32_t controlState = *(uint32_t*)(data);
-//   uint32_t batteryLevel = *(uint32_t*)(data + 36);
-//   float altitude = *(int32_t*)(data + 24) / 1000.0;  // Convert to meters
-//   float theta = *(int16_t*)(data + 12) / 1000.0;     // Pitch angle in radians
-//   float phi = *(int16_t*)(data + 16) / 1000.0;       // Roll angle in radians
-//   float psi = *(int16_t*)(data + 20) / 1000.0;       // Yaw angle in radians
-//
-//   Serial.print("Battery Level: ");
-//   Serial.println(batteryLevel);
-//   Serial.print("Altitude: ");
-//   Serial.println(altitude);
-//   Serial.print("Pitch: ");
-//   Serial.println(theta);
-//   Serial.print("Roll: ");
-//   Serial.println(phi);
-//   Serial.print("Yaw: ");
-//   Serial.println(psi);
-// }
 
 void setup() {
   Serial.begin(115200);
-
-  //pinMode(BOTON_MODO, INPUT_PULLUP);
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -183,73 +113,143 @@ void setup() {
   digitalWrite(LED_BUILTIN, LOW);
   delay(1500);
 
-  udp.begin(localPort);               // Local port to send UDP packets
-  // udpTelemetry.begin(telemetryPort);  // Local port for receiving telemetry
+  udp.begin(localPort);
 }
 
 void loop() {
-  bool modo = boton_modo.read();
-  bool btn = boton.read ();
-  bool up = up_fwd.read();
-  bool down = dw_bkw.read();
-  bool iz = left.read();
-  bool de = right.read();
+  // como estan pullupeados los botones para que tenga sentido los doy vuelta
+  bool btn = boton.pressed();
+  bool modo = boton_modo.pressed();
+  bool arr = up_fwd.pressed();
+  bool aba = dw_bkw.pressed();
+  bool izq = left.pressed();
+  bool der = right.pressed();
+  // volando me interesa el estado y no si fue apretado
+  bool btn_state = !boton.read();
+  bool modo_state = !boton_modo.read();
+  bool arr_state = !up_fwd.read();
+  bool aba_state = !dw_bkw.read();
+  bool izq_state = !left.read();
+  bool der_state = !right.read();
 
 
-  debugln(modo);
-  debugln(btn);
+  // *******************************
+  // flying
+  // *******************************
+  if (flying) {
+    if (modo_state) {
+      // *******************************
+      // MODO apretado
+      if (btn) {
+        // *******************************
+        // boton apretado
+        debug("boton apretado -> ");
+        flying = false;
+        debug("aterrizar. seq#: ");
+        sendCommand(commands.land, sequenceNumber++);
+        debugln(sequenceNumber);
+      }
 
-  // if (btn) {
-  //   debug("boton apretado -> ");
-  //   if (!flying) {
-  //     debugln("despegar.");
-  //     sendCommand(commands.takeoff, sequenceNumber++);
-  //   } else {
-  //     debugln("aterrizarar.");
-  //     sendCommand(commands.land, sequenceNumber++);
-  //   }
-  //   flying = !flying;
-  //   debugln(sequenceNumber);
-  // }
-  //
-  // else if (up) {
-  //   debug("up_fwd apretado -> ");
-  //   if (!flying) {
-  //     debugln("setAlarmOK.");
-  //     sendCommand(commands.setAlarmOk, sequenceNumber++);
-  //     sendCommand(commands.flatTrim, sequenceNumber++);
-  //   } else {
-  //   }
-  // }
-  //
-  // else if (down) {
-  //   debug("dw_bkw apretado -> ");
-  //   if (!flying) {
-  //     debugln("emergency.");
-  //     sendCommand(commands.emergency, sequenceNumber++);
-  //   } else {
-  //   }
-  // }
-  //
-  // else if (iz) {
-  //   debug("left apretado -> ");
-  //   if (!flying) {
-  //     debugln("telemetry.");
-  //     sendCommand(commands.setAlarmOk, sequenceNumber++);
-  //     delay(1000);
-  //     receiveTelemetry();
-  //   } else {
-  //   }
-  // }
-  //
-  // else if (de) {
-  //   debug("right apretado -> ");
-  //   if (!flying) {
-  //     debugln("telemetry.");
-  //     receiveTelemetry();
-  //   } else {
-  //   }
-  // }
-  // receiveTelemetry();
+      else if (arr_state) {
+        // *******************************
+        // boton arriba
+        debug("volando - > boton arriba apretado -> ");
+        debug("Subir. seq#: ");
+        // comando para subir
+        debugln(sequenceNumber);
+      }
 
+      else if (aba) {
+        // *******************************
+        // boton abajo
+        debug(" volando - > boton abajo apretado -> ");
+        debug("Bajar. seq#: ");
+        sendCommand(commands.emergency, sequenceNumber++);
+        debugln(sequenceNumber);
+      }
+
+      else if (der) {
+        // *******************************
+        // boton derecha
+        debugln("boton derecha apretado -> ");
+      }
+
+      else if (izq) {
+        // *******************************
+        // boton izquierda
+        debugln("boton izq apretado -> ");
+      }
+    } else {
+      // *******************************
+      // MODO suelto
+      if (btn) {
+        // *******************************
+        // boton apretado
+        debug("boton apretado -> ");
+        flying = false;
+        debug("aterrizar. seq#: ");
+        sendCommand(commands.land, sequenceNumber++);
+        debugln(sequenceNumber);
+      }
+    }
+
+
+  } else {
+    // *******************************
+    // NOT FLYING
+    // *******************************
+    if (modo_state) {
+      // *******************************
+      // MODO apretado
+      if (btn) {
+        // *******************************
+        // boton apretado
+        debugln("boton apretado -> emergency.");
+        sendCommand(commands.emergency, sequenceNumber++);
+      }
+    } else {
+      // *******************************
+      // MODO suelto
+      if (btn) {
+        // *******************************
+        // boton apretado
+        debug("boton apretado -> ");
+        flying = true;
+        debug("despegar. seq#: ");
+        sendCommand(commands.takeoff, sequenceNumber++);
+        debugln(sequenceNumber);
+      }
+
+      else if (arr) {
+        // *******************************
+        // boton arriba
+        debug("no volando - > boton arriba apretado -> ");
+        debugln("Set Alarm OK.");
+        sendCommand(commands.setAlarmOk, sequenceNumber++);
+        sendCommand(commands.flatTrim, sequenceNumber++);
+      }
+
+      else if (aba) {
+        // *******************************
+        // boton abajo
+        debug("no volando - > boton abajo apretado -> ");
+        debug("Emergency. seq#: ");
+        sendCommand(commands.emergency, sequenceNumber++);
+        debugln(sequenceNumber);
+      }
+
+      else if (der) {
+        // *******************************
+        // boton derecha
+        debugln("boton derecha apretado -> ");
+      }
+
+      else if (izq) {
+        // *******************************
+        // boton izquierda
+        debugln("boton izq apretado -> ");
+      }
+    }
+  }
 }
+
