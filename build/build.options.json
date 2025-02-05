@@ -1,0 +1,10 @@
+{
+  "additionalFiles": "",
+  "builtInToolsFolders": "",
+  "compiler.optimization_flags": "",
+  "customBuildProperties": "build.warn_data_percentage=75",
+  "fqbn": "esp8266:esp8266:nodemcuv2:baud=115200,wipe=none,vt=flash,mmu=3232,dbg=Disabled,lvl=None____,eesz=4M2M,non32xfer=fast,led=16,exception=disabled,ssl=all,xtal=80,stacksmash=disabled,ip=lm2f",
+  "hardwareFolders": "/home/juanmiguel/.arduino15/packages",
+  "otherLibrariesFolders": "/home/juanmiguel/Arduino/libraries",
+  "sketchLocation": "/home/juanmiguel/Arduino/enarrdo"
+}

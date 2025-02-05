@@ -86,71 +86,71 @@ void sendCommand(const char* format, int seq, ...) {
   udp.endPacket();
 }
 
-void receiveTelemetry() {
-  int packetSize = udpTelemetry.parsePacket();
-  if (packetSize) {
-    char buffer[1024];
-    int len = udpTelemetry.read(buffer, sizeof(buffer) - 1);
-    if (len > 0) {
-      buffer[len] = 0;              // Null-terminate the buffer
-      parseTelemetry(buffer, len);  // Parse the telemetry data
-    }
-  }
-}
-
-void parseTelemetry(const char* data, int length) {
-  // Parse the header
-  uint32_t header = *(uint32_t*)(data);
-  uint32_t droneState = *(uint32_t*)(data + 4);
-  uint32_t sequenceNumber = *(uint32_t*)(data + 8);
-  uint32_t visionFlag = *(uint32_t*)(data + 12);
-
-  Serial.print("Header: ");
-  Serial.println(header, HEX);
-  Serial.print("Drone State: ");
-  Serial.println(droneState, HEX);
-  Serial.print("Sequence Number: ");
-  Serial.println(sequenceNumber);
-  Serial.print("Vision Flag: ");
-  Serial.println(visionFlag, HEX);
-
-  // Parse navigation tags
-  int offset = 16;  // Start of navigation tags
-  while (offset < length) {
-    uint16_t tagId = *(uint16_t*)(data + offset);
-    uint16_t tagLength = *(uint16_t*)(data + offset + 2);
-
-    switch (tagId) {
-      case 0:  // Demo tag (contains basic telemetry)
-        parseDemoTag(data + offset + 4, tagLength);
-        break;
-        // Add more cases for other tags as needed
-    }
-
-    offset += 4 + tagLength;  // Move to the next tag
-  }
-}
-
-void parseDemoTag(const char* data, int length) {
-  // Parse demo tag data
-  uint32_t controlState = *(uint32_t*)(data);
-  uint32_t batteryLevel = *(uint32_t*)(data + 36);
-  float altitude = *(int32_t*)(data + 24) / 1000.0;  // Convert to meters
-  float theta = *(int16_t*)(data + 12) / 1000.0;     // Pitch angle in radians
-  float phi = *(int16_t*)(data + 16) / 1000.0;       // Roll angle in radians
-  float psi = *(int16_t*)(data + 20) / 1000.0;       // Yaw angle in radians
-
-  Serial.print("Battery Level: ");
-  Serial.println(batteryLevel);
-  Serial.print("Altitude: ");
-  Serial.println(altitude);
-  Serial.print("Pitch: ");
-  Serial.println(theta);
-  Serial.print("Roll: ");
-  Serial.println(phi);
-  Serial.print("Yaw: ");
-  Serial.println(psi);
-}
+// void receiveTelemetry() {
+//   int packetSize = udpTelemetry.parsePacket();
+//   if (packetSize) {
+//     char buffer[1024];
+//     int len = udpTelemetry.read(buffer, sizeof(buffer) - 1);
+//     if (len > 0) {
+//       buffer[len] = 0;              // Null-terminate the buffer
+//       parseTelemetry(buffer, len);  // Parse the telemetry data
+//     }
+//   }
+// }
+//
+// void parseTelemetry(const char* data, int length) {
+//   // Parse the header
+//   uint32_t header = *(uint32_t*)(data);
+//   uint32_t droneState = *(uint32_t*)(data + 4);
+//   uint32_t sequenceNumber = *(uint32_t*)(data + 8);
+//   uint32_t visionFlag = *(uint32_t*)(data + 12);
+//
+//   Serial.print("Header: ");
+//   Serial.println(header, HEX);
+//   Serial.print("Drone State: ");
+//   Serial.println(droneState, HEX);
+//   Serial.print("Sequence Number: ");
+//   Serial.println(sequenceNumber);
+//   Serial.print("Vision Flag: ");
+//   Serial.println(visionFlag, HEX);
+//
+//   // Parse navigation tags
+//   int offset = 16;  // Start of navigation tags
+//   while (offset < length) {
+//     uint16_t tagId = *(uint16_t*)(data + offset);
+//     uint16_t tagLength = *(uint16_t*)(data + offset + 2);
+//
+//     switch (tagId) {
+//       case 0:  // Demo tag (contains basic telemetry)
+//         parseDemoTag(data + offset + 4, tagLength);
+//         break;
+//         // Add more cases for other tags as needed
+//     }
+//
+//     offset += 4 + tagLength;  // Move to the next tag
+//   }
+// }
+//
+// void parseDemoTag(const char* data, int length) {
+//   // Parse demo tag data
+//   uint32_t controlState = *(uint32_t*)(data);
+//   uint32_t batteryLevel = *(uint32_t*)(data + 36);
+//   float altitude = *(int32_t*)(data + 24) / 1000.0;  // Convert to meters
+//   float theta = *(int16_t*)(data + 12) / 1000.0;     // Pitch angle in radians
+//   float phi = *(int16_t*)(data + 16) / 1000.0;       // Roll angle in radians
+//   float psi = *(int16_t*)(data + 20) / 1000.0;       // Yaw angle in radians
+//
+//   Serial.print("Battery Level: ");
+//   Serial.println(batteryLevel);
+//   Serial.print("Altitude: ");
+//   Serial.println(altitude);
+//   Serial.print("Pitch: ");
+//   Serial.println(theta);
+//   Serial.print("Roll: ");
+//   Serial.println(phi);
+//   Serial.print("Yaw: ");
+//   Serial.println(psi);
+// }
 
 void setup() {
   Serial.begin(115200);
@@ -170,97 +170,86 @@ void setup() {
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
-    delay(200);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(200);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(200);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(200);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(200);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(200);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(200);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(200);
-    digitalWrite(LED_BUILTIN, HIGH);
-
+    for (int i = 0; i < 5; i++) {
+      delay(200);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(200);
+      digitalWrite(LED_BUILTIN, HIGH);
+    }
     debugln("Conectando con el drone...");
   }
   debugln("Conectado!!!!");
 
-  //digitalWrite(LED, HIGH);
   digitalWrite(LED_BUILTIN, LOW);
   delay(1500);
 
   udp.begin(localPort);               // Local port to send UDP packets
-  udpTelemetry.begin(telemetryPort);  // Local port for receiving telemetry
+  // udpTelemetry.begin(telemetryPort);  // Local port for receiving telemetry
 }
 
 void loop() {
-  //int boton_modo = digitalRead(BOTON_MODO);
-  //
-  bool modo = boton_modo.pressed();
+  bool modo = boton_modo.read();
   bool btn = boton.read ();
-  bool up = up_fwd.pressed();
-  bool down = dw_bkw.pressed();
-  bool iz = left.pressed();
-  bool de = right.pressed();
+  bool up = up_fwd.read();
+  bool down = dw_bkw.read();
+  bool iz = left.read();
+  bool de = right.read();
 
 
-  if (btn) {
-    debug("boton apretado -> ");
-    if (!flying) {
-      debugln("despegar.");
-      sendCommand(commands.takeoff, sequenceNumber++);
-    } else {
-      debugln("aterrizarar.");
-      sendCommand(commands.land, sequenceNumber++);
-    }
-    flying = !flying;
-    debugln(sequenceNumber);
-  }
+  debugln(modo);
+  debugln(btn);
 
-  else if (up) {
-    debug("up_fwd apretado -> ");
-    if (!flying) {
-      debugln("setAlarmOK.");
-      sendCommand(commands.setAlarmOk, sequenceNumber++);
-      sendCommand(commands.flatTrim, sequenceNumber++);
-    } else {
-    }
-  }
-
-  else if (down) {
-    debug("dw_bkw apretado -> ");
-    if (!flying) {
-      debugln("emergency.");
-      sendCommand(commands.emergency, sequenceNumber++);
-    } else {
-    }
-  }
-
-  else if (iz) {
-    debug("left apretado -> ");
-    if (!flying) {
-      debugln("telemetry.");
-      sendCommand(commands.setAlarmOk, sequenceNumber++);
-      delay(1000);
-      receiveTelemetry();
-    } else {
-    }
-  }
-
-  else if (de) {
-    debug("right apretado -> ");
-    if (!flying) {
-      debugln("telemetry.");
-      receiveTelemetry();
-    } else {
-    }
-  }
-  receiveTelemetry();
+  // if (btn) {
+  //   debug("boton apretado -> ");
+  //   if (!flying) {
+  //     debugln("despegar.");
+  //     sendCommand(commands.takeoff, sequenceNumber++);
+  //   } else {
+  //     debugln("aterrizarar.");
+  //     sendCommand(commands.land, sequenceNumber++);
+  //   }
+  //   flying = !flying;
+  //   debugln(sequenceNumber);
+  // }
+  //
+  // else if (up) {
+  //   debug("up_fwd apretado -> ");
+  //   if (!flying) {
+  //     debugln("setAlarmOK.");
+  //     sendCommand(commands.setAlarmOk, sequenceNumber++);
+  //     sendCommand(commands.flatTrim, sequenceNumber++);
+  //   } else {
+  //   }
+  // }
+  //
+  // else if (down) {
+  //   debug("dw_bkw apretado -> ");
+  //   if (!flying) {
+  //     debugln("emergency.");
+  //     sendCommand(commands.emergency, sequenceNumber++);
+  //   } else {
+  //   }
+  // }
+  //
+  // else if (iz) {
+  //   debug("left apretado -> ");
+  //   if (!flying) {
+  //     debugln("telemetry.");
+  //     sendCommand(commands.setAlarmOk, sequenceNumber++);
+  //     delay(1000);
+  //     receiveTelemetry();
+  //   } else {
+  //   }
+  // }
+  //
+  // else if (de) {
+  //   debug("right apretado -> ");
+  //   if (!flying) {
+  //     debugln("telemetry.");
+  //     receiveTelemetry();
+  //   } else {
+  //   }
+  // }
+  // receiveTelemetry();
 
 }
